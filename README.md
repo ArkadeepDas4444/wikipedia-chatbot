@@ -1,4 +1,4 @@
-# Wikipedia RAG Chatbot
+# Wikipedia Chatbot
 
 A full-stack Retrieval-Augmented Generation (RAG) chatbot that answers user questions using Wikipedia articles as context.
 
@@ -48,7 +48,7 @@ Built using:
 
 ## Project Structure
 
-```bash
+```
 wikipedia-chatbot/
 │
 ├── .gitignore
