@@ -13,7 +13,7 @@ Built using:
 
 ---
 
-# Features
+## Features
 
 * Multi-query Wikipedia retrieval
 * Retrieval-Augmented Generation (RAG)
@@ -27,15 +27,15 @@ Built using:
 
 ---
 
-# Tech Stack
+## Tech Stack
 
-## Frontend
+### Frontend
 
 * React.js
 * Vite
 * Tailwind CSS
 
-## Backend
+### Backend
 
 * Flask
 * LangChain
@@ -46,7 +46,7 @@ Built using:
 
 ---
 
-# Project Structure
+## Project Structure
 
 ```bash
 wikipedia-chatbot/
@@ -69,7 +69,7 @@ wikipedia-chatbot/
 
 ---
 
-# How It Works
+## How It Works
 
 1. User asks a question from the React frontend
 2. Flask API receives the query
@@ -82,41 +82,37 @@ wikipedia-chatbot/
 
 ---
 
-# Backend Setup
+## Backend Setup
 
-## 1. Navigate to backend
+### 1. Navigate to backend
 
 ```bash
 cd backend
 ```
 
-## 2. Create virtual environment
+### 2. Create virtual environment
 
-### Windows
+#### Windows
 
 ```bash
 python -m venv .venv
 .venv\Scripts\activate
 ```
 
-### Mac/Linux
+#### Mac/Linux
 
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
 ```
 
----
-
-## 3. Install dependencies
+### 3. Install dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
----
-
-## 4. Create `.env`
+### 4. Create `.env`
 
 Inside `backend/.env`:
 
@@ -124,9 +120,7 @@ Inside `backend/.env`:
 GROQ_API_KEY=your_api_key_here
 ```
 
----
-
-## 5. Run Flask server
+### 5. Run Flask server
 
 ```bash
 python app.py
@@ -140,25 +134,21 @@ http://127.0.0.1:5000
 
 ---
 
-# Frontend Setup
+## Frontend Setup
 
-## 1. Navigate to frontend
+### 1. Navigate to frontend
 
 ```bash
 cd frontend
 ```
 
----
-
-## 2. Install dependencies
+### 2. Install dependencies
 
 ```bash
 npm install
 ```
 
----
-
-## 3. Run frontend
+### 3. Run frontend
 
 ```bash
 npm run dev
@@ -172,7 +162,7 @@ http://localhost:5173
 
 ---
 
-# Environment Variables
+## Environment Variables
 
 | Variable       | Description  |
 | -------------- | ------------ |
@@ -180,7 +170,7 @@ http://localhost:5173
 
 ---
 
-# Future Improvements
+## Future Improvements
 
 * Streaming responses
 * Persistent FAISS index
@@ -196,7 +186,7 @@ http://localhost:5173
 
 ---
 
-# Known Limitations
+## Known Limitations
 
 * FAISS index rebuilds on every query
 * Wikipedia retrieval can occasionally fail
@@ -205,7 +195,7 @@ http://localhost:5173
 
 ---
 
-# Example Questions
+## Example Questions
 
 * Who invented the transistor?
 * Explain the theory of relativity
@@ -215,13 +205,13 @@ http://localhost:5173
 
 ---
 
-# License
+## License
 
 This project is licensed under the MIT License.
 
 ---
 
-# Acknowledgements
+## Acknowledgements
 
 * LangChain
 * HuggingFace
