@@ -223,9 +223,5 @@ rag_chain = (
     | StrOutputParser()
 )
 
-# question = input("Enter your question: ")
-# response = rag_chain.invoke(question)
-# print(f"response:\n{response}")
-
 def ask_question(question):
     return rag_chain.invoke(question)
