@@ -140,7 +140,7 @@ def wiki_retriever_multi(question):
         return docs
 
     queries = generate_queries(question)
-    print(f"queries:\n{queries}\n")
+    print(f"queries:\n{queries}\n")     # Print queries in the terminal
 
     all_docs = []
     seen_titles = set()
@@ -194,7 +194,7 @@ Rules:
 - Use ONLY the provided context
 - Combine information from multiple contexts when helpful
 - Provide a complete but concise answer
-- If information is incomplete, mention that clearly
+- If information the retrieved Wikipedia context is incomplete, mention that clearly
 - Do NOT invent unsupported facts
 
 Context:
@@ -212,7 +212,7 @@ def format_docs(docs):
         f"{doc.page_content}"
         for doc in docs
     )
-    print(f"formatted_docs:\n{formatted_docs}\n")
+    print(f"formatted_docs:\n{formatted_docs}\n")   # Print formatted_docs in the terminal
     return formatted_docs
 
 # RAG chain
@@ -224,4 +224,6 @@ rag_chain = (
 )
 
 def ask_question(question):
-    return rag_chain.invoke(question)
+    response = rag_chain.invoke(question)
+    print(f"response:\n{response}\n")   # Print response in the terminal
+    return response
