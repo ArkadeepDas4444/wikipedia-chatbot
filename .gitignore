@@ -7,6 +7,11 @@ __pycache__/
 
 # Environment variables
 backend/.env
+backend/.env.*
+!backend/.env.example
+frontend/.env
+frontend/.env.*
+!frontend/.env.example
 
 # Jupyter
 .ipynb_checkpoints/
@@ -17,6 +22,7 @@ backend/.env
 # =========================
 frontend/node_modules/
 frontend/dist/
+backend/runtime/
 
 # Logs
 npm-debug.log*

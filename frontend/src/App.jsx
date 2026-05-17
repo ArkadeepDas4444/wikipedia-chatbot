@@ -1,12 +1,84 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+
+const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "";
+const turnstileSiteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY || "";
 
 function App() {
   const [message, setMessage] = useState("");
   const [chat, setChat] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState("");
+  const [captchaReady, setCaptchaReady] = useState(false);
+  const [captchaError, setCaptchaError] = useState("");
+  const turnstileContainerRef = useRef(null);
+  const turnstileWidgetIdRef = useRef(null);
+
+  useEffect(() => {
+    if (!turnstileSiteKey) {
+      setCaptchaError("Turnstile is not configured yet. Add VITE_TURNSTILE_SITE_KEY to the frontend environment.");
+      return undefined;
+    }
+
+    const renderWidget = () => {
+      if (!window.turnstile || !turnstileContainerRef.current || turnstileWidgetIdRef.current !== null) {
+        return;
+      }
+
+      turnstileWidgetIdRef.current = window.turnstile.render(turnstileContainerRef.current, {
+        sitekey: turnstileSiteKey,
+        callback: (token) => {
+          setCaptchaToken(token);
+          setCaptchaReady(true);
+          setCaptchaError("");
+        },
+        "expired-callback": () => {
+          setCaptchaToken("");
+          setCaptchaReady(false);
+          setCaptchaError("Verification expired. Please complete it again.");
+        },
+        "error-callback": () => {
+          setCaptchaToken("");
+          setCaptchaReady(false);
+          setCaptchaError("Verification could not be completed. Please reload and try again.");
+        },
+      });
+    };
+
+    const existingScript = document.querySelector('script[data-turnstile="true"]');
+    if (existingScript) {
+      existingScript.addEventListener("load", renderWidget, { once: true });
+      renderWidget();
+      return undefined;
+    }
+
+    const script = document.createElement("script");
+    script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
+    script.async = true;
+    script.defer = true;
+    script.dataset.turnstile = "true";
+    script.onload = renderWidget;
+    script.onerror = () => {
+      setCaptchaError("Cloudflare Turnstile failed to load. Please reload the page.");
+    };
+    document.head.appendChild(script);
+
+    return undefined;
+  }, []);
+
+  const resetTurnstile = () => {
+    if (window.turnstile && turnstileWidgetIdRef.current !== null) {
+      window.turnstile.reset(turnstileWidgetIdRef.current);
+    }
+    setCaptchaToken("");
+    setCaptchaReady(false);
+  };
 
   const sendMessage = async () => {
     if (!message.trim()) return;
+    if (!captchaToken) {
+      setCaptchaError("Please complete the verification challenge before sending a message.");
+      return;
+    }
 
     const userMessage = {
       role: "user",
@@ -17,13 +89,14 @@ function App() {
     setLoading(true);
 
     try {
-      const response = await fetch("http://127.0.0.1:5000/chat", {
+      const response = await fetch(`${apiBaseUrl}/chat`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          message: message
+          message: message,
+          turnstileToken: captchaToken
         })
       });
 
@@ -35,6 +108,7 @@ function App() {
       };
 
       setChat(prev => [...prev, botMessage]);
+      resetTurnstile();
 
     } catch (error) {
       setChat(prev => [
@@ -58,6 +132,10 @@ function App() {
         <h1 className="text-4xl font-bold mb-6 text-center">
           Wikipedia RAG Chatbot
         </h1>
+
+        <p className="mb-4 text-center text-sm text-zinc-400">
+          Public demo mode is enabled with bot checks and daily usage limits.
+        </p>
 
         <div className="bg-zinc-900 rounded-2xl p-4 h-[70vh] overflow-y-auto shadow-lg">
 
@@ -106,11 +184,21 @@ function App() {
 
           <button
             onClick={sendMessage}
-            className="bg-blue-600 px-6 py-3 rounded-xl hover:bg-blue-700"
+            disabled={loading || !captchaReady}
+            className="bg-blue-600 px-6 py-3 rounded-xl hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-900"
           >
             Send
           </button>
 
+        </div>
+
+        <div className="mt-4 rounded-2xl bg-zinc-900 p-4 shadow-lg">
+          <div ref={turnstileContainerRef} />
+          {captchaError && (
+            <p className="mt-3 text-sm text-amber-300">
+              {captchaError}
+            </p>
+          )}
         </div>
 
       </div>

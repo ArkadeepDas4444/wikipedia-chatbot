@@ -118,6 +118,11 @@ Inside `backend/.env`:
 
 ```env
 GROQ_API_KEY=your_api_key_here
+TURNSTILE_SECRET_KEY=your_turnstile_secret_key_here
+ALLOWED_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
+RATE_LIMIT_PER_MINUTE=5
+RATE_LIMIT_PER_DAY_PER_IP=20
+GLOBAL_DAILY_CAP=200
 ```
 
 ### 5. Run Flask server
@@ -150,13 +155,20 @@ npm install
 
 ### 3. Run frontend
 
+Create `frontend/.env`:
+
+```env
+VITE_API_BASE_URL=
+VITE_TURNSTILE_SITE_KEY=your_turnstile_site_key_here
+```
+
 ```bash
 npm run dev
 ```
 
 Frontend runs on:
 
-```bash
+```
 http://localhost:5173
 ```
 
@@ -164,9 +176,34 @@ http://localhost:5173
 
 ## Environment Variables
 
-| Variable       | Description  |
-| -------------- | ------------ |
+| Variable | Description |
+| -------- | ----------- |
 | `GROQ_API_KEY` | Groq API key |
+| `TURNSTILE_SECRET_KEY` | Cloudflare Turnstile secret for backend verification |
+| `ALLOWED_ORIGINS` | Comma-separated frontend origins allowed to call `/chat` |
+| `RATE_LIMIT_PER_MINUTE` | Per-IP requests allowed each minute |
+| `RATE_LIMIT_PER_DAY_PER_IP` | Per-IP requests allowed per day |
+| `GLOBAL_DAILY_CAP` | Global successful chat requests allowed per day |
+| `VITE_API_BASE_URL` | Frontend API base URL. Leave empty when nginx serves frontend and backend from the same domain |
+| `VITE_TURNSTILE_SITE_KEY` | Cloudflare Turnstile site key used by the frontend |
+
+---
+
+## Public Demo Protection
+
+This app now supports:
+
+* IP-based rate limiting
+* Per-IP daily usage caps
+* Global daily usage caps
+* Cloudflare Turnstile bot protection
+
+If you deploy with nginx, make sure it forwards the client IP so rate limiting works correctly:
+
+```nginx
+proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+proxy_set_header X-Real-IP $remote_addr;
+```
 
 ---
 
