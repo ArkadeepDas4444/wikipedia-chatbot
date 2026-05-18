@@ -29,6 +29,16 @@ RATE_LIMIT_PER_MINUTE = int(os.getenv("RATE_LIMIT_PER_MINUTE", "5"))
 RATE_LIMIT_PER_DAY_PER_IP = int(os.getenv("RATE_LIMIT_PER_DAY_PER_IP", "20"))
 GLOBAL_DAILY_CAP = int(os.getenv("GLOBAL_DAILY_CAP", "200"))
 TURNSTILE_SECRET_KEY = os.getenv("TURNSTILE_SECRET_KEY", "").strip()
+BYPASS_LIMIT_IPS = {
+    ip.strip()
+    for ip in os.getenv("BYPASS_LIMIT_IPS", "").split(",")
+    if ip.strip()
+}
+BYPASS_TURNSTILE_IPS = {
+    ip.strip()
+    for ip in os.getenv("BYPASS_TURNSTILE_IPS", "").split(",")
+    if ip.strip()
+}
 
 def get_db_connection():
     connection = sqlite3.connect(DB_PATH)
@@ -68,6 +78,14 @@ def get_client_ip():
 def get_time_buckets():
     now = datetime.now(timezone.utc)
     return now.strftime("%Y-%m-%d"), now.strftime("%Y-%m-%dT%H:%M")
+
+
+def is_limit_bypass_ip(ip_address):
+    return ip_address in BYPASS_LIMIT_IPS
+
+
+def is_turnstile_bypass_ip(ip_address):
+    return ip_address in BYPASS_TURNSTILE_IPS
 
 def get_usage_snapshot(ip_address):
     day_bucket, minute_bucket = get_time_buckets()
@@ -163,25 +181,29 @@ def chat():
         return jsonify({"response": "Please keep the question under 500 characters for this demo."}), 400
 
     if not turnstile_token:
-        return jsonify({"response": "Please complete the verification challenge before chatting."}), 400
+        if not is_turnstile_bypass_ip(ip_address):
+            return jsonify({"response": "Please complete the verification challenge before chatting."}), 400
 
     usage = get_usage_snapshot(ip_address)
 
-    if usage["minute_count"] >= RATE_LIMIT_PER_MINUTE:
-        return jsonify({"response": "Too many requests from this IP. Please wait a minute and try again."}), 429
+    if not is_limit_bypass_ip(ip_address):
+        if usage["minute_count"] >= RATE_LIMIT_PER_MINUTE:
+            return jsonify({"response": "Too many requests from this IP. Please wait a minute and try again."}), 429
 
-    if usage["daily_count"] >= RATE_LIMIT_PER_DAY_PER_IP:
-        return jsonify({"response": "This IP has reached the daily demo limit. Please try again tomorrow."}), 429
+        if usage["daily_count"] >= RATE_LIMIT_PER_DAY_PER_IP:
+            return jsonify({"response": "This IP has reached the daily demo limit. Please try again tomorrow."}), 429
 
-    if usage["global_daily_count"] >= GLOBAL_DAILY_CAP:
-        return jsonify({"response": "Daily demo limit reached. Please try again tomorrow."}), 429
+        if usage["global_daily_count"] >= GLOBAL_DAILY_CAP:
+            return jsonify({"response": "Daily demo limit reached. Please try again tomorrow."}), 429
 
     try:
-        if not verify_turnstile_token(turnstile_token, ip_address):
-            return jsonify({"response": "Verification failed. Please refresh the challenge and try again."}), 403
+        if not is_turnstile_bypass_ip(ip_address):
+            if not verify_turnstile_token(turnstile_token, ip_address):
+                return jsonify({"response": "Verification failed. Please refresh the challenge and try again."}), 403
 
         response = ask_question(question)
-        record_usage(ip_address, usage["day_bucket"], usage["minute_bucket"])
+        if not is_limit_bypass_ip(ip_address):
+            record_usage(ip_address, usage["day_bucket"], usage["minute_bucket"])
 
         return jsonify({"response": response}), 200
 
